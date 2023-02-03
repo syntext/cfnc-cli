@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/local/bin/python3
 import os
 import sys
 import requests
@@ -22,14 +22,22 @@ CF_API_URL = "https://api.cloudflare.com/client/v4"
 # Namecheap API URL
 NC_API_URL = "https://api.namecheap.com/xml.response"
 
-def show_choices(cf_account):
-    print("\nChoose an action:")
-    print("1. Add zone")
-    print("2. Enforce HTTPS")
-    print("3. Add record")
-    print("4. Add CNAME record")
-    print("5. Remove record")
-    print("6. Update nameservers of domain\n")
+def list_zones(cf_account):
+    url = CF_API_URL + "/zones"
+    headers = {
+        'X-Auth-Account': cf_account["account_id"],
+        'X-Auth-Email': cf_account["email"],
+        'X-Auth-Key': cf_account["api_key"],
+        'Content-Type': 'application/json'
+    }
+    response = requests.get(url, headers=headers)
+    result = response.json()
+    if result['success'] == True:
+        print('Zones: ')
+        for zone in result['result']:
+            print(zone['name'])
+    else:
+        print('Error fetching zones.')
 
 def add_zone(domain, cf_account):
     url = CF_API_URL + "/zones"
@@ -58,7 +66,7 @@ def add_zone(domain, cf_account):
 
 
 # Add forcing https for the Cloudflare API Script
-def add_https(domain, cf_account):
+def enforce_https(domain, cf_account):
     zone_id = get_zone_id(domain, cf_account)
     url = CF_API_URL + "/zones/" + zone_id + "/settings/ssl"
     data = {
@@ -100,9 +108,6 @@ def add_record(domain, name, type, content, cf_account):
         print('Record added.')
     else:
         print('Error adding record.')
-
-def add_cname_record(domain, name, content, cf_account):
-    add_record(domain, name, "CNAME", content, cf_account)
 
 def remove_record(domain, cf_account):
     zone_id = get_zone_id(domain, cf_account)
@@ -172,6 +177,17 @@ def get_zone_id(domain, cf_account):
     zone_id = result['result'][0]['id']
     return zone_id
 
+def show_choices(cf_account):
+    print("\nChoose an action:")
+    print("1. List zones")
+    print("2. Add zone")
+    print("3. Add record")
+    print("4. Remove record")
+    print("5. Enforce HTTPS")
+    print("6. Update nameservers of domain\n")
+
+# =====================================================================================================================
+
 # Ask for the cloudflare credentials to use
 print("\nChoose the Cloudflare account to use:")
 for i, cf_account in enumerate(CF_ACCOUNTS):
@@ -185,11 +201,10 @@ try:
         show_choices(cf_account)
         choice = input('> ')
         if choice == '1':
-            domain = input('Enter domain: ')
-            add_zone(domain, cf_account)
+            list_zones(cf_account)
         if choice == '2':
             domain = input('Enter domain: ')
-            add_https(domain, cf_account)
+            add_zone(domain, cf_account)
         elif choice == '3':
             domain = input('Enter domain: ')
             name = input('Enter record name: ')
@@ -198,12 +213,10 @@ try:
             add_record(domain, name, type, content, cf_account)
         elif choice == '4':
             domain = input('Enter domain: ')
-            name = input('Enter record name: ')
-            content = input('Enter record content: ')
-            add_cname_record(domain, name, content, cf_account)
-        elif choice == '5':
-            domain = input('Enter domain: ')
             remove_record(domain, cf_account)
+        if choice == '5':
+            domain = input('Enter domain: ')
+            enforce_https(domain, cf_account)
         elif choice == '6':
             domain = input('Enter domain: ')
             nameservers = input('Enter nameservers (separate by comma): ').split(',')
