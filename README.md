@@ -17,4 +17,4 @@ Currently, the following tasks are supported:
 * Add record
 * Add CNAME record
 * Remove record
-* Update nameservers of domain
+* Update nameservers of domain in Namecheap
