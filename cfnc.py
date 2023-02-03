@@ -52,7 +52,6 @@ def add_zone(domain, cf_account):
         'Content-Type': 'application/json'
     }
     response = requests.post(url, json=data, headers=headers)
-    print(result)
     if result['success'] == True:
         print('Zone added.')
         print('Nameservers: ')
@@ -79,7 +78,6 @@ def enforce_https(domain, cf_account):
         'Content-Type': 'application/json'
     }
     response = requests.patch(url, json=data, headers=headers)
-    print(response)
     result = response.json()
     if result['success'] == True:
         print('HTTPS enforced.')
@@ -103,7 +101,6 @@ def add_record(domain, name, type, content, cf_account):
     }
     response = requests.post(url, json=data, headers=headers)
     result = response.json()
-    print(result)
     if result['success'] == True:
         print('Record added.')
     else:
